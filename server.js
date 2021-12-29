@@ -51,7 +51,14 @@ function restart() {
   }
 }
 
+const recentlyClicked = new Set();
 function handleClick(i, button) {
+  if (recentlyClicked.has(i)) {
+    return;
+  } else {
+    recentlyClicked.add(i);
+    setTimeout(() => recentlyClicked.delete(i), 500);
+  }
   const [revealed] = state.board.tiles[i];
   if (!revealed) {
     if (button === 0) {
