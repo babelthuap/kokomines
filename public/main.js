@@ -62,6 +62,7 @@ socket.on('update', (update) => {
     if ('tiles' in update) {
       for (let i in update.tiles) {
         const tileDiv = getTileDiv(i);
+        tileDiv.style.opacity = '';
         const [revealed, label] = update.tiles[i];
         if (revealed) {
           tileDiv.classList.remove('concealed');
@@ -69,6 +70,8 @@ socket.on('update', (update) => {
         tileDiv.innerText = label || '';
         if (typeof label === 'number') {
           tileDiv.classList.add(`m${label}`);
+        } else if (label === '💣') {
+          tileDiv.classList.add('mine');
         }
       }
     }
@@ -86,6 +89,7 @@ RESTART_BUTTON.addEventListener('click', () => {
 
 BOARD_EL.addEventListener('mousedown', (e) => {
   if (gameInProgress && e.target.classList.contains('concealed')) {
+    e.target.style.opacity = '0.5';
     socket.emit('click', [e.target.i, e.button]);
   }
 });
