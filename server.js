@@ -28,7 +28,7 @@ const hovering = {};
 function handleConnection(socket) {
   console.log(`user ${socket.id} connected`);
 
-  socket.emit('init', state.board);
+  socket.emit('init', {gameInProgress, board: state.board});
 
   socket.on('hover', (i) => {
     if (i !== null) {

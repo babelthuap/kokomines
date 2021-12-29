@@ -1,7 +1,9 @@
 const BOARD_EL = document.getElementById('board');
 const BOOM = createDiv('boom');
 BOOM.innerText = 'BOOM';
+const COUNTERS = document.getElementById('counters');
 const FLAGS_EL = document.getElementById('numFlags');
+const INPUTS = document.getElementById('inputs');
 const MINES_EL = document.getElementById('numMines');
 const RESTART_BUTTON = document.getElementById('restart');
 const WINNER = createDiv('winner');
@@ -13,12 +15,14 @@ let gameInProgress = false;
 let restarting = true;
 let width = 0;
 
-socket.on('init', (board) => {
+socket.on('init', (serverState) => {
   console.log('socket.id:', socket.id);
   window.requestAnimationFrame(() => {
+    const board = serverState.board;
     BOARD_EL.innerHTML = '';
     FLAGS_EL.innerText = board.flags;
     MINES_EL.innerText = board.mines;
+    [BOARD_EL, INPUTS, COUNTERS].forEach(el => el.classList.remove('shake'));
 
     width = board.width;
     for (let row = 0; row < board.height; row++) {
@@ -41,9 +45,9 @@ socket.on('init', (board) => {
       BOARD_EL.appendChild(rowDiv);
     }
 
-    gameInProgress = true;
     restarting = false;
-    RESTART_BUTTON.style.visibility = 'hidden';
+    gameInProgress = serverState.gameInProgress;
+    RESTART_BUTTON.style.visibility = gameInProgress ? 'hidden' : '';
   });
 });
 
@@ -55,6 +59,7 @@ socket.on('update', (update) => {
         BOARD_EL.appendChild(WINNER);
       } else {
         BOARD_EL.appendChild(BOOM);
+        [BOARD_EL, INPUTS, COUNTERS].forEach(el => el.classList.add('shake'));
       }
       RESTART_BUTTON.style.visibility = '';
     });
