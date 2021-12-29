@@ -28,20 +28,11 @@ function handleConnection(socket) {
   socket.emit('init', state.board);
 
   socket.on('click', ([i, button]) => {
-    try {
-      if (gameInProgress) {
-        const update = handleClick(i, button);
-        if (update) {
-          io.emit('update', update);
-        }
+    if (gameInProgress) {
+      const update = handleClick(i, button);
+      if (update) {
+        io.emit('update', update);
       }
-    } catch (e) {
-      console.log('ERROR:', e);
-      restarting = true;
-      initGameState();
-      gameInProgress = true;
-      io.emit('init', state.board);
-      setTimeout(() => restarting = false, 1000);
     }
   });
 
@@ -97,6 +88,10 @@ function reveal(i) {
 // Recursively descubrido
 function aNewCavernHasBeenDiscovered(i, updatedIndices) {
   const tile = state.board.tiles[i];
+  if (!tile) {
+    console.log('ERROR accessing index', i);
+    return;
+  }
   if (tile[0]) {
     return;
   }
@@ -170,10 +165,10 @@ function forEachNbrIndex(i, fn) {
   const x = i % width;
   const y = (i - x) / width;
 
-  let upExists = y >= 0;
-  let downExists = y < state.board.height;
-  let leftExists = x >= 0;
-  let rightExists = x < state.board.width;
+  let upExists = y > 0;
+  let downExists = y < state.board.height - 1;
+  let leftExists = x > 0;
+  let rightExists = x < state.board.width - 1;
 
   let rowOffset;
   // Row above
