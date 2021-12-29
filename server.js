@@ -93,17 +93,21 @@ function reveal(i) {
     gameInProgress = false;
     return {gameWon: false, tiles: [[[i, tile]]]};
   }
-  // Reveal a non-bomb tile
+  // Reveal a non-mine tile
   const updatedIndices = descubrido(i);
-  const indicesByDist = updatedIndices.reduce((map, j) => {
-    const d = dist(i, j);
-    (map[d] || (map[d] = [])).push(j);
-    return map;
-  }, {});
-  const updatedTiles =
-      Object.entries(indicesByDist)
+  const updatedTiles = updatedIndices.length === 1 ?
+      [[[i, state.board.tiles[i]]]] :
+      Object
+          .entries(updatedIndices.reduce(
+              // Group indices by their distance from the clicked tile
+              (groups, j) => {
+                const d = dist(i, j);
+                (groups[d] || (groups[d] = [])).push(j);
+                return groups;
+              },
+              {}))
           .sort(([d1], [d2]) => d1 - d2)
-          .map(([d, indices]) => indices.map(i => [i, state.board.tiles[i]]));
+          .map(([d, indices]) => indices.map(j => [j, state.board.tiles[j]]));
   if (state.tilesLeftToReveal === 0) {
     gameInProgress = false;
     return {gameWon: true, flags: state.board.flags, tiles: updatedTiles};
