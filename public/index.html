@@ -1,0 +1,24 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <title>KokoMines</title>
+  <link rel="stylesheet" href="style.css">
+</head>
+<body>
+  <div id="controls">
+    <div id="inputs">
+      X:30
+      Y:16
+      density:20%
+    </div>
+    <button id="restart" style="visibility:hidden;">Restart</button>
+    <div id="counters">
+      Mines: <span id="numMines"></span>,
+      Flags: <span id="numFlags"></span>
+    </div>
+  </div>
+  <div id="board" class="lg"></div>
+  <script src="/socket.io/socket.io.js"></script>
+  <script type="module" src="/main.js"></script>
+</body>
+</html>
