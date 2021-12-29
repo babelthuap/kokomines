@@ -63,24 +63,60 @@ function handleClick(i, button) {
 // Reveals a tile
 function reveal(i) {
   const tile = state.board.tiles[i];
+  // Clear all surrounding tiles on he first click
+  if (state.firstClick) {
+    state.firstClick = false;
+    clearMines(i);
+  }
+  // Go boom?
   if (state.minePositions[i]) {
-    // TODO: swap mine on first click
     tile[0] = true;
     tile[1] = '💣';
     gameInProgress = false;
     return {gameWon: false, tiles: {[i]: tile}};
+  }
+  // Reveal a non-bomb tile
+  const updatedIndices = [];
+  aNewCavernHasBeenDiscovered(i, updatedIndices);
+  const updatedTiles = updatedIndices.reduce((tiles, i) => {
+    tiles[i] = state.board.tiles[i];
+    return tiles;
+  }, {});
+  if (state.tilesLeftToReveal === 0) {
+    gameInProgress = false;
+    return {gameWon: true, flags: state.board.flags, tiles: updatedTiles};
   } else {
-    const updatedIndices = [];
-    aNewCavernHasBeenDiscovered(i, updatedIndices);
-    const updatedTiles = updatedIndices.reduce((tiles, i) => {
-      tiles[i] = state.board.tiles[i];
-      return tiles;
-    }, {});
-    if (state.tilesLeftToReveal === 0) {
-      gameInProgress = false;
-      return {gameWon: true, flags: state.board.flags, tiles: updatedTiles};
-    } else {
-      return {flags: state.board.flags, tiles: updatedTiles};
+    return {flags: state.board.flags, tiles: updatedTiles};
+  }
+}
+
+// Clears all surrounding tiles
+function clearMines(i) {
+  let minesToReplace = 0;
+  const indicesToAvoid = new Set();
+  if (state.minePositions[i]) {
+    state.minePositions[i] = false;
+    minesToReplace++;
+    indicesToAvoid.add(i);
+  }
+  forEachNbrIndex(i, (nbr) => {
+    if (state.minePositions[nbr]) {
+      state.minePositions[nbr] = false;
+      minesToReplace++;
+      indicesToAvoid.add(nbr);
+    }
+  });
+  while (minesToReplace > 0) {
+    const r = rand(state.board.tiles.length - 1);
+    if (!state.minePositions[r] && !indicesToAvoid.has(r)) {
+      state.minePositions[r] = true;
+      minesToReplace--;
+    }
+  }
+  // Calculate adjacentMines
+  for (let i = 0; i < state.board.tiles.length; i++) {
+    if (state.minePositions[i]) {
+      forEachNbrIndex(i, (nbr) => state.adjacentMines[nbr]++);
     }
   }
 }
@@ -130,6 +166,8 @@ function flag(i) {
 
 // Creates a new game state
 function initGameState(width = 30, height = 16, density = 0.2) {
+  state.firstClick = true;
+
   const numTiles = width * height;
   const numMines = Math.round(numTiles * density);
 
@@ -152,11 +190,6 @@ function initGameState(width = 30, height = 16, density = 0.2) {
   shuffle(state.minePositions);
 
   state.adjacentMines = new Array(numTiles).fill(0);
-  for (let i = 0; i < numTiles; i++) {
-    if (state.minePositions[i]) {
-      forEachNbrIndex(i, (nbr) => state.adjacentMines[nbr]++);
-    }
-  }
 }
 
 // Executes a function for each neighboring tile index
