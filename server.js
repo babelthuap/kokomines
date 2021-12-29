@@ -62,7 +62,7 @@ function restart() {
     restarting = true;
     initGameState();
     gameInProgress = true;
-    io.emit('init', state.board);
+    io.emit('init', {gameInProgress, board: state.board});
     setTimeout(() => restarting = false, 1000);
   }
 }
