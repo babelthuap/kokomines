@@ -1,6 +1,7 @@
 const BOARD_EL = document.getElementById('board');
 const BOOM = createDiv('boom');
 BOOM.innerText = 'BOOM';
+const CONTROLS = document.getElementById('controls');
 const COUNTERS = document.getElementById('counters');
 const FLAGS_EL = document.getElementById('numFlags');
 const INPUTS = document.getElementById('inputs');
@@ -44,6 +45,7 @@ socket.on('init', (serverState) => {
       }
       BOARD_EL.appendChild(rowDiv);
     }
+    CONTROLS.style.width = `${BOARD_EL.scrollWidth}px`;
 
     restarting = false;
     gameInProgress = serverState.gameInProgress;
