@@ -65,13 +65,15 @@ function restart() {
   }
 }
 
-const recentlyClicked = new Set();
+const recentlyFlagged = new Set();
 function handleClick(i, button) {
-  if (recentlyClicked.has(i)) {
-    return;
-  } else {
-    recentlyClicked.add(i);
-    setTimeout(() => recentlyClicked.delete(i), 200);
+  if (button !== 0) {
+    if (recentlyFlagged.has(i)) {
+      return;
+    } else {
+      recentlyFlagged.add(i);
+      setTimeout(() => recentlyFlagged.delete(i), 200);
+    }
   }
   const [revealed] = state.board.tiles[i];
   if (!revealed) {

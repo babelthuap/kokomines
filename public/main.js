@@ -43,6 +43,7 @@ socket.on('init', (board) => {
 
     gameInProgress = true;
     restarting = false;
+    RESTART_BUTTON.style.visibility = 'hidden';
   });
 });
 
