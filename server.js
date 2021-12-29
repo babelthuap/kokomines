@@ -23,7 +23,7 @@ server.listen(PORT, () => {
 });
 
 function handleConnection(socket) {
-  console.log(`user ${socket.id} connected!`);
+  console.log(`user ${socket.id} connected`);
 
   socket.emit('init', state.board);
 
@@ -36,17 +36,19 @@ function handleConnection(socket) {
     }
   });
 
-  socket.on('restart', () => {
-    if (!gameInProgress && !restarting) {
-      restarting = true;
-      initGameState();
-      gameInProgress = true;
-      io.emit('init', state.board);
-      setTimeout(() => restarting = false, 1000);
-    }
-  });
+  socket.on('restart', restart);
 
   socket.on('disconnect', () => console.log(`user ${socket.id} disconnected`));
+}
+
+function restart() {
+  if (!gameInProgress && !restarting) {
+    restarting = true;
+    initGameState();
+    gameInProgress = true;
+    io.emit('init', state.board);
+    setTimeout(() => restarting = false, 1000);
+  }
 }
 
 function handleClick(i, button) {
@@ -73,6 +75,7 @@ function reveal(i) {
     tile[0] = true;
     tile[1] = '💣';
     gameInProgress = false;
+    setTimeout(restart, 10_000);
     return {gameWon: false, tiles: {[i]: tile}};
   }
   // Reveal a non-bomb tile
@@ -84,6 +87,7 @@ function reveal(i) {
   }, {});
   if (state.tilesLeftToReveal === 0) {
     gameInProgress = false;
+    setTimeout(restart, 10_000);
     return {gameWon: true, flags: state.board.flags, tiles: updatedTiles};
   } else {
     return {flags: state.board.flags, tiles: updatedTiles};
