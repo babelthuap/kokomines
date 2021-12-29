@@ -57,7 +57,7 @@ function handleClick(i, button) {
     return;
   } else {
     recentlyClicked.add(i);
-    setTimeout(() => recentlyClicked.delete(i), 500);
+    setTimeout(() => recentlyClicked.delete(i), 200);
   }
   const [revealed] = state.board.tiles[i];
   if (!revealed) {

@@ -91,7 +91,7 @@ BOARD_EL.addEventListener('mousedown', (e) => {
   if (gameInProgress && e.target.classList.contains('concealed') &&
       !(e.button === 0 && e.target.innerText)) {
     e.target.style.opacity = '0.5';
-    setTimeout(() => e.target.style.opacity = '', 500);
+    setTimeout(() => e.target.style.opacity = '', 200);
     socket.emit('click', [e.target.i, e.button]);
   }
 });
