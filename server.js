@@ -1,4 +1,4 @@
-const PORT = 8000;
+const PORT = process.argv[2] || 80;
 const express = require('express');
 const app = express();
 const http = require('http');
@@ -63,7 +63,7 @@ function handleClick(i, button) {
 // Reveals a tile
 function reveal(i) {
   const tile = state.board.tiles[i];
-  // Clear all surrounding tiles on he first click
+  // Clear all surrounding tiles on the first click
   if (state.firstClick) {
     state.firstClick = false;
     clearMines(i);
