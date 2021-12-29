@@ -65,16 +65,7 @@ function restart() {
   }
 }
 
-const recentlyFlagged = new Set();
 function handleClick(i, button) {
-  if (button !== 0) {
-    if (recentlyFlagged.has(i)) {
-      return;
-    } else {
-      recentlyFlagged.add(i);
-      setTimeout(() => recentlyFlagged.delete(i), 200);
-    }
-  }
   const [revealed] = state.board.tiles[i];
   if (!revealed) {
     if (button === 0) {
@@ -98,7 +89,6 @@ function reveal(i) {
     tile[0] = true;
     tile[1] = '💣';
     gameInProgress = false;
-    setTimeout(restart, 10_000);
     return {gameWon: false, tiles: {[i]: tile}};
   }
   // Reveal a non-bomb tile
@@ -110,7 +100,6 @@ function reveal(i) {
   }, {});
   if (state.tilesLeftToReveal === 0) {
     gameInProgress = false;
-    setTimeout(restart, 10_000);
     return {gameWon: true, flags: state.board.flags, tiles: updatedTiles};
   } else {
     return {flags: state.board.flags, tiles: updatedTiles};

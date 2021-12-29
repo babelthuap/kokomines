@@ -68,6 +68,8 @@ socket.on('update', (update) => {
         const [revealed, label] = update.tiles[i];
         if (revealed) {
           tileDiv.classList.remove('concealed');
+        } else {
+          tileDiv.classList.add('concealed');
         }
         tileDiv.innerText = label || '';
         if (typeof label === 'number') {
@@ -117,10 +119,25 @@ RESTART_BUTTON.addEventListener('click', () => {
 });
 
 BOARD_EL.addEventListener('mousedown', (e) => {
-  if (gameInProgress && e.target.classList.contains('concealed') &&
-      !(e.button === 0 && e.target.innerText)) {
-    e.target.style.opacity = '0.5';
-    setTimeout(() => e.target.style.opacity = '', 200);
+  if (gameInProgress && e.target.classList.contains('concealed')) {
+    // Optimistic updates
+    const hasText = e.target.innerText !== '';
+    if (e.button === 0) {
+      // Left click
+      if (hasText) {
+        // Tried to reveal a flagged tile
+        return;
+      } else {
+        e.target.classList.remove('concealed');
+      }
+    } else {
+      // Right click
+      if (hasText) {
+        e.target.innerText = '';
+      } else {
+        e.target.innerText = 'F';
+      }
+    }
     socket.emit('click', [e.target.i, e.button]);
   }
 });
