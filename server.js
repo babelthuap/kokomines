@@ -1,3 +1,5 @@
+'use strict';
+
 const PORT = process.argv[2] || 80;
 const express = require('express');
 const app = express();
@@ -78,7 +80,6 @@ function handleClick(i, button) {
 
 // Reveals a tile
 function reveal(i) {
-  const tile = state.board.tiles[i];
   // Clear all surrounding tiles on the first click
   if (state.firstClick) {
     state.firstClick = false;
@@ -86,18 +87,23 @@ function reveal(i) {
   }
   // Go boom?
   if (state.minePositions[i]) {
+    const tile = state.board.tiles[i];
     tile[0] = true;
     tile[1] = '💣';
     gameInProgress = false;
-    return {gameWon: false, tiles: {[i]: tile}};
+    return {gameWon: false, tiles: [[[i, tile]]]};
   }
   // Reveal a non-bomb tile
-  const updatedIndices = [];
-  aNewCavernHasBeenDiscovered(i, updatedIndices);
-  const updatedTiles = updatedIndices.reduce((tiles, i) => {
-    tiles[i] = state.board.tiles[i];
-    return tiles;
+  const updatedIndices = descubrido(i);
+  const indicesByDist = updatedIndices.reduce((map, j) => {
+    const d = dist(i, j);
+    (map[d] || (map[d] = [])).push(j);
+    return map;
   }, {});
+  const updatedTiles =
+      Object.entries(indicesByDist)
+          .sort(([d1], [d2]) => d1 - d2)
+          .map(([d, indices]) => indices.map(i => [i, state.board.tiles[i]]));
   if (state.tilesLeftToReveal === 0) {
     gameInProgress = false;
     return {gameWon: true, flags: state.board.flags, tiles: updatedTiles};
@@ -110,16 +116,16 @@ function reveal(i) {
 function clearMines(i) {
   let minesToReplace = 0;
   const indicesToAvoid = new Set();
+  indicesToAvoid.add(i);
   if (state.minePositions[i]) {
     state.minePositions[i] = false;
     minesToReplace++;
-    indicesToAvoid.add(i);
   }
   forEachNbrIndex(i, (nbr) => {
+    indicesToAvoid.add(nbr);
     if (state.minePositions[nbr]) {
       state.minePositions[nbr] = false;
       minesToReplace++;
-      indicesToAvoid.add(nbr);
     }
   });
   while (minesToReplace > 0) {
@@ -137,33 +143,46 @@ function clearMines(i) {
   }
 }
 
-// Recursively descubrido
-function aNewCavernHasBeenDiscovered(i, updatedIndices) {
-  const tile = state.board.tiles[i];
-  if (!tile) {
-    console.log('ERROR accessing index', i);
-    return;
-  }
-  if (tile[0]) {
-    return;
-  }
+// A new cavern has been discovered?
+function descubrido(i) {
+  const updatedIndices = [];
+  const queue = new ArrayQueue();
+  queue.push(i);
+  while (queue.size() > 0) {
+    const j = queue.pop();
+    const tile = state.board.tiles[j];
 
-  tile[0] = true;
-  if (tile[1]) {
-    tile[1] = null;
-    state.board.flags--;
-  }
-  const adjacentMines = state.adjacentMines[i];
-  if (adjacentMines > 0) {
-    tile[1] = adjacentMines;
-  }
-  state.tilesLeftToReveal--;
+    if (tile[0 /* revealed */]) {
+      continue;
+    }
+    tile[0 /* revealed */] = true;
+    state.tilesLeftToReveal--;
 
-  updatedIndices.push(i);
-  if (adjacentMines === 0 && !state.minePositions[i]) {
-    forEachNbrIndex(
-        i, (nbr) => aNewCavernHasBeenDiscovered(nbr, updatedIndices));
+    if (tile[1 /* label */]) {
+      // Remove flag
+      tile[1] = null;
+      state.board.flags--;
+    }
+    const adjacentMines = state.adjacentMines[j];
+    if (adjacentMines > 0) {
+      tile[1 /* label */] = adjacentMines;
+    }
+
+    updatedIndices.push(j);
+    if (adjacentMines === 0 && !state.minePositions[j]) {
+      forEachNbrIndex(j, queue.push);
+    }
   }
+  return updatedIndices;
+}
+
+function dist(i, j) {
+  const width = state.board.width;
+  const ix = i % width;
+  const iy = (i - ix) / width;
+  const jx = j % width;
+  const jy = (j - jx) / width;
+  return (ix - jx) * (ix - jx) + (iy - jy) * (iy - jy);
 }
 
 // Toggles a flag
@@ -177,7 +196,7 @@ function flag(i) {
     tile[1] = 'F';
     state.board.flags++;
   }
-  return {flags: state.board.flags, tiles: {[i]: tile}};
+  return {flags: state.board.flags, tiles: [[[i, tile]]]};
 }
 
 // Creates a new game state
@@ -254,4 +273,24 @@ function shuffle(arr) {
 // Gets random int in [0, n]
 function rand(n) {
   return Math.floor((n + 1) * Math.random());
+}
+
+function ArrayQueue() {
+  const array = [];
+  let headIndex = 0;
+  let size = 0;
+
+  this.size = () => size;
+  this.push = (value) => {
+    size++;
+    array.push(value);
+  };
+  this.pop = () => {
+    if (size === 0) {
+      return undefined;
+    } else {
+      size--;
+      return array[headIndex++];
+    }
+  };
 }

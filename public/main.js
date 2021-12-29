@@ -48,39 +48,53 @@ socket.on('init', (board) => {
 });
 
 socket.on('update', (update) => {
-  window.requestAnimationFrame(() => {
-    if ('gameWon' in update) {
-      gameInProgress = false;
+  if ('gameWon' in update) {
+    gameInProgress = false;
+    window.requestAnimationFrame(() => {
       if (update.gameWon) {
         BOARD_EL.appendChild(WINNER);
       } else {
         BOARD_EL.appendChild(BOOM);
       }
       RESTART_BUTTON.style.visibility = '';
-    }
-    if ('flags' in update) {
+    });
+  }
+  if ('flags' in update) {
+    window.requestAnimationFrame(() => {
       FLAGS_EL.innerText = update.flags;
-    }
-    if ('tiles' in update) {
-      for (let i in update.tiles) {
-        const tileDiv = getTileDiv(i);
-        tileDiv.style.opacity = '';
-        const [revealed, label] = update.tiles[i];
-        if (revealed) {
-          tileDiv.classList.remove('concealed');
-        } else {
-          tileDiv.classList.add('concealed');
-        }
-        tileDiv.innerText = label || '';
-        if (typeof label === 'number') {
-          tileDiv.classList.add(`m${label}`);
-        } else if (label === '💣') {
-          tileDiv.classList.add('mine');
-        }
+    });
+  }
+  if ('tiles' in update) {
+    updateTiles(update.tiles);
+  }
+});
+
+async function updateTiles(tiles) {
+  for (let equidistantTiles of tiles) {
+    await updateEquidistantTiles(equidistantTiles);
+  }
+}
+
+function updateEquidistantTiles(equidistantTiles) {
+  return new Promise((resolve) => window.requestAnimationFrame(() => {
+    for (let [i, tile] of equidistantTiles) {
+      const tileDiv = getTileDiv(i);
+      const [revealed, label] = tile;
+      if (revealed) {
+        tileDiv.classList.remove('concealed');
+      } else {
+        tileDiv.classList.add('concealed');
+      }
+      tileDiv.innerText = label || '';
+      if (typeof label === 'number') {
+        tileDiv.classList.add(`m${label}`);
+      } else if (label === '💣') {
+        tileDiv.classList.add('mine');
       }
     }
-  });
-});
+    resolve();
+  }));
+}
 
 let hoverIndices = new Set();
 socket.on('hover', (hovering) => {
