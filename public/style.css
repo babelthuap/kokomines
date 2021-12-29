@@ -177,7 +177,3 @@ body {
 .tile.concealed:hover {
   background-color: #aaa;
 }
-
-.tile.other.concealed:hover {
-  opacity: 1;
-}
