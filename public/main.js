@@ -14,6 +14,7 @@ let restarting = true;
 let width = 0;
 
 socket.on('init', (board) => {
+  console.log('socket.id:', socket.id);
   window.requestAnimationFrame(() => {
     BOARD_EL.innerHTML = '';
     FLAGS_EL.innerText = board.flags;
@@ -76,6 +77,33 @@ socket.on('update', (update) => {
       }
     }
   });
+});
+
+let hoverIndices = new Set();
+socket.on('hover', (hovering) => {
+  let newHoverIndices = new Set();
+  for (let id in hovering) {
+    if (id !== socket.id) {
+      newHoverIndices.add(hovering[id]);
+    }
+  }
+  for (let i of newHoverIndices) {
+    if (hoverIndices.has(i)) {
+      hoverIndices.delete(i);
+    } else {
+      getTileDiv(i).classList.add('other');
+    }
+  }
+  for (let i of hoverIndices) {
+    getTileDiv(i).classList.remove('other');
+  }
+  hoverIndices = newHoverIndices;
+});
+
+BOARD_EL.addEventListener('mouseover', (e) => {
+  if ('i' in e.target) {
+    socket.emit('hover', e.target.i);
+  }
 });
 
 RESTART_BUTTON.addEventListener('click', () => {

@@ -22,10 +22,20 @@ server.listen(PORT, () => {
   console.log(`listening on *:${PORT}`);
 });
 
+const hovering = {};
 function handleConnection(socket) {
   console.log(`user ${socket.id} connected`);
 
   socket.emit('init', state.board);
+
+  socket.on('hover', (i) => {
+    if (i !== null) {
+      hovering[socket.id] = i;
+    } else {
+      delete hovering[socket.id];
+    }
+    socket.broadcast.emit('hover', hovering);
+  });
 
   socket.on('click', ([i, button]) => {
     if (gameInProgress) {
@@ -38,7 +48,11 @@ function handleConnection(socket) {
 
   socket.on('restart', restart);
 
-  socket.on('disconnect', () => console.log(`user ${socket.id} disconnected`));
+  socket.on('disconnect', () => {
+    console.log(`user ${socket.id} disconnected`);
+    delete hovering[socket.id];
+    socket.broadcast.emit('hover', hovering);
+  });
 }
 
 function restart() {
