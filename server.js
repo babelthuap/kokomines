@@ -15,10 +15,14 @@ function log(...args) {
   }
 }
 function time(label, fn) {
-  const start = process.hrtime.bigint();
-  fn();
-  const end = process.hrtime.bigint();
-  log(label, Number((end - start) / 1000n), 'μs');
+  if (DEBUG) {
+    const start = process.hrtime.bigint();
+    fn();
+    const end = process.hrtime.bigint();
+    console.log(label, Number((end - start) / 1000n), 'μs');
+  } else {
+    fn();
+  }
 }
 
 app.get('/', (req, res) => {
