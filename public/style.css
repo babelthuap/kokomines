@@ -204,6 +204,7 @@ body {
 .footnotes {
   margin-top: 8px;
   text-align: center;
+  user-select: none;
 }
 
 .footnotes a {
