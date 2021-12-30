@@ -21,7 +21,15 @@ let restarting = false;
 io.on('connection', handleConnection);
 
 server.listen(PORT, () => {
-  console.log(`listening on *:${PORT}`);
+  const networkInterfaces = require('os').networkInterfaces();
+  const primaryInterface = Object.values(networkInterfaces)
+                               .flatMap(i => i)
+                               .find(i => i.family === 'IPv4' && !i.internal);
+  if (primaryInterface) {
+    console.log(`listening on ${primaryInterface}:${PORT}`);
+  } else {
+    console.log(`listening on port ${PORT}`);
+  }
 });
 
 const hovering = {};
