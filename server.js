@@ -26,7 +26,7 @@ server.listen(PORT, () => {
                                .flatMap(i => i)
                                .find(i => i.family === 'IPv4' && !i.internal);
   if (primaryInterface) {
-    console.log(`listening on ${primaryInterface}:${PORT}`);
+    console.log(`listening on ${primaryInterface.address}:${PORT}`);
   } else {
     console.log(`listening on port ${PORT}`);
   }
