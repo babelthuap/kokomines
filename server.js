@@ -1,6 +1,8 @@
 'use strict';
 
 const PORT = (parseInt(process.argv[2]) && parseInt(process.argv[2])) || 80;
+
+// External modules
 const express = require('express');
 const app = express();
 const http = require('http');
@@ -8,48 +10,18 @@ const server = http.createServer(app);
 const {Server} = require('socket.io');
 const io = new Server(server);
 
-const DEBUG = process.argv.slice(2).some(arg => arg.includes('debug'));
-function log(...args) {
-  if (DEBUG) {
-    console.log(...args);
-  }
-}
-function time(label, fn) {
-  if (DEBUG) {
-    const start = process.hrtime.bigint();
-    fn();
-    const end = process.hrtime.bigint();
-    console.log(label, Number((end - start) / 1000n), 'μs');
-  } else {
-    fn();
-  }
-}
+// My modules
+const {state, gameInProgress, restart, handleClick} =
+    require('./js/minesweeper.js');
+const {log, time} = require('./js/logger.js');
 
-app.get('/', (req, res) => {
-  res.sendFile(__dirname + '/public/index.html');
-});
-
+// Initialize app
+app.get('/', (req, res) => res.sendFile(__dirname + '/public/index.html'));
 app.use(express.static('public'));
-
-const state = {};
-initGameState();
-let gameInProgress = true;
-let restarting = false;
 io.on('connection', handleConnection);
+server.listen(PORT, handleServerStartup);
 
-server.listen(PORT, () => {
-  const networkInterfaces = require('os').networkInterfaces();
-  const primaryInterface = Object.values(networkInterfaces)
-                               .flatMap(i => i)
-                               .find(i => i.family === 'IPv4' && !i.internal);
-  if (primaryInterface) {
-    console.log(`listening on ${primaryInterface.address}:${PORT}`);
-  } else {
-    log('WARNING: No external IPv4 network interface in', networkInterfaces);
-    console.log(`listening on port ${PORT}`);
-  }
-});
-
+// Handles communication with a socket
 const hovering = {};
 function handleConnection(socket) {
   log(`user ${socket.id} connected`);
@@ -76,7 +48,9 @@ function handleConnection(socket) {
     }
   });
 
-  socket.on('restart', restart);
+  socket.on(
+      'restart',
+      () => restart() && io.emit('init', {gameInProgress, board: state.board}));
 
   socket.on('disconnect', () => {
     log(`user ${socket.id} disconnected`);
@@ -85,225 +59,16 @@ function handleConnection(socket) {
   });
 }
 
-function restart() {
-  if (!gameInProgress && !restarting) {
-    restarting = true;
-    initGameState();
-    gameInProgress = true;
-    io.emit('init', {gameInProgress, board: state.board});
-    setTimeout(() => restarting = false, 1000);
-  }
-}
-
-function handleClick(i, button) {
-  const [revealed] = state.board.tiles[i];
-  if (!revealed) {
-    if (button === 0) {
-      return reveal(i);
-    } else {
-      return flag(i);
-    }
-  }
-}
-
-// Reveals a tile
-function reveal(i) {
-  // Clear all surrounding tiles on the first click
-  if (state.firstClick) {
-    state.firstClick = false;
-    clearMines(i);
-  }
-  // Go boom?
-  if (state.minePositions[i]) {
-    const tile = state.board.tiles[i];
-    tile[0] = true;
-    tile[1] = '💣';
-    gameInProgress = false;
-    return {gameWon: false, tiles: [[[i, tile]]]};
-  }
-  // Reveal a non-mine tile
-  const updatedIndices = descubrido(i);
-  const updatedTiles = updatedIndices.length === 1 ?
-      [[[i, state.board.tiles[i]]]] :
-      Object
-          .entries(updatedIndices.reduce(
-              // Group indices by their distance from the clicked tile
-              (groups, j) => {
-                const d = dist(i, j);
-                (groups[d] || (groups[d] = [])).push(j);
-                return groups;
-              },
-              {}))
-          .sort(([d1], [d2]) => d1 - d2)
-          .map(([d, indices]) => indices.map(j => [j, state.board.tiles[j]]));
-  if (state.tilesLeftToReveal === 0) {
-    gameInProgress = false;
-    return {gameWon: true, flags: state.board.flags, tiles: updatedTiles};
+// Displays logs on server startup
+function handleServerStartup() {
+  const networkInterfaces = require('os').networkInterfaces();
+  const primaryInterface = Object.values(networkInterfaces)
+                               .flatMap(i => i)
+                               .find(i => i.family === 'IPv4' && !i.internal);
+  if (primaryInterface) {
+    console.log(`listening on ${primaryInterface.address}:${PORT}`);
   } else {
-    return {flags: state.board.flags, tiles: updatedTiles};
+    log('WARNING: No external IPv4 network interface in', networkInterfaces);
+    console.log(`listening on port ${PORT}`);
   }
-}
-
-// Clears all surrounding tiles
-function clearMines(i) {
-  let minesToReplace = 0;
-  const indicesToAvoid = new Set();
-  indicesToAvoid.add(i);
-  if (state.minePositions[i]) {
-    state.minePositions[i] = false;
-    minesToReplace++;
-  }
-  forEachNbrIndex(i, (nbr) => {
-    indicesToAvoid.add(nbr);
-    if (state.minePositions[nbr]) {
-      state.minePositions[nbr] = false;
-      minesToReplace++;
-    }
-  });
-  while (minesToReplace > 0) {
-    const r = rand(state.board.tiles.length - 1);
-    if (!state.minePositions[r] && !indicesToAvoid.has(r)) {
-      state.minePositions[r] = true;
-      minesToReplace--;
-    }
-  }
-  // Calculate adjacentMines
-  for (let i = 0; i < state.board.tiles.length; i++) {
-    if (state.minePositions[i]) {
-      forEachNbrIndex(i, (nbr) => state.adjacentMines[nbr]++);
-    }
-  }
-}
-
-// A new cavern has been discovered?
-function descubrido(i) {
-  const updatedIndices = [];
-  const stack = [i];
-  while (stack.length > 0) {
-    const j = stack.pop();
-    const tile = state.board.tiles[j];
-
-    if (tile[0 /* revealed */]) {
-      continue;
-    }
-    tile[0 /* revealed */] = true;
-    state.tilesLeftToReveal--;
-
-    if (tile[1 /* label */]) {
-      // Remove flag
-      tile[1] = null;
-      state.board.flags--;
-    }
-    const adjacentMines = state.adjacentMines[j];
-    if (adjacentMines > 0) {
-      tile[1 /* label */] = adjacentMines;
-    }
-
-    updatedIndices.push(j);
-    if (adjacentMines === 0 && !state.minePositions[j]) {
-      forEachNbrIndex(j, (nbr) => stack.push(nbr));
-    }
-  }
-  return updatedIndices;
-}
-
-function dist(i, j) {
-  const width = state.board.width;
-  const ix = i % width;
-  const iy = (i - ix) / width;
-  const jx = j % width;
-  const jy = (j - jx) / width;
-  return (ix - jx) * (ix - jx) + (iy - jy) * (iy - jy);
-}
-
-// Toggles a flag
-function flag(i) {
-  const tile = state.board.tiles[i];
-  const label = tile[1];
-  if (label) {
-    tile[1] = null;
-    state.board.flags--;
-  } else {
-    tile[1] = 'F';
-    state.board.flags++;
-  }
-  return {flags: state.board.flags, tiles: [[[i, tile]]]};
-}
-
-// Creates a new game state
-function initGameState(width = 30, height = 16, density = 0.2) {
-  time('initGameState', () => {
-    state.firstClick = true;
-
-    const numTiles = width * height;
-    const numMines = Math.round(numTiles * density);
-
-    state.tilesLeftToReveal = numTiles - numMines;
-    state.board = {
-      width: width,
-      height: height,
-      mines: numMines,
-      flags: 0,
-      tiles: new Array(numTiles),
-    };
-    for (let i = 0; i < numTiles; i++) {
-      state.board.tiles[i] = [false, null];  // [revealed, label]
-    }
-
-    state.minePositions = new Array(numTiles).fill(false);
-    for (let i = 0; i < numMines; i++) {
-      state.minePositions[i] = true;
-    }
-    shuffle(state.minePositions);
-
-    state.adjacentMines = new Array(numTiles).fill(0);
-  });
-}
-
-// Executes a function for each neighboring tile index
-function forEachNbrIndex(i, fn) {
-  const width = state.board.width;
-  const x = i % width;
-  const y = (i - x) / width;
-
-  let upExists = y > 0;
-  let downExists = y < state.board.height - 1;
-  let leftExists = x > 0;
-  let rightExists = x < state.board.width - 1;
-
-  let rowOffset;
-  // Row above
-  if (upExists) {
-    rowOffset = (y - 1) * width;
-    leftExists && fn(x - 1 + rowOffset);
-    fn(x + rowOffset);
-    rightExists && fn(x + 1 + rowOffset);
-  }
-  // Current row
-  rowOffset = y * width;
-  leftExists && fn(x - 1 + rowOffset);
-  rightExists && fn(x + 1 + rowOffset);
-  // Row below
-  if (downExists) {
-    rowOffset = (y + 1) * width;
-    leftExists && fn(x - 1 + rowOffset);
-    fn(x + rowOffset);
-    rightExists && fn(x + 1 + rowOffset);
-  }
-}
-
-// Shuffles an array in place
-function shuffle(arr) {
-  for (let i = arr.length - 1; i > 0; i--) {
-    let j = rand(i);
-    let temp = arr[j];
-    arr[j] = arr[i];
-    arr[i] = temp;
-  }
-  return arr;
-}
-
-// Gets random int in [0, n]
-function rand(n) {
-  return Math.floor((n + 1) * Math.random());
 }
