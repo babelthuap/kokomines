@@ -3,18 +3,25 @@
 const {dist, shuffle, rand} = require('./util.js');
 const {time} = require('./logger.js');
 
-const state = {};
-initGameState();
-let gameInProgress = true;
-let restarting = false;
+// First initialization
+const state = {
+  gameInProgress: false,
+  restarting: false,
+  firstClick: null,
+  tilesLeftToReveal: null,
+  board: null,
+  minePositions: null,
+  adjacentMines: null,
+};
+restart();
 
 // Restarts the game if it's not currently in progress
 function restart() {
-  if (!gameInProgress && !restarting) {
-    restarting = true;
+  if (!state.gameInProgress && !state.restarting) {
+    state.restarting = true;
     initGameState();
-    gameInProgress = true;
-    setTimeout(() => restarting = false, 1000);
+    state.gameInProgress = true;
+    setTimeout(() => state.restarting = false, 1000);
     return true;
   } else {
     return false;
@@ -33,7 +40,7 @@ function handleClick(i, button) {
   }
 }
 
-// Creates a new game state
+// Initializes the game state
 function initGameState(width = 30, height = 16, density = 0.2) {
   time('initGameState', () => {
     state.firstClick = true;
@@ -75,7 +82,7 @@ function reveal(i) {
     const tile = state.board.tiles[i];
     tile[0] = true;
     tile[1] = '💣';
-    gameInProgress = false;
+    state.gameInProgress = false;
     return {gameWon: false, tiles: [[[i, tile]]]};
   }
   // Reveal a non-mine tile
@@ -94,7 +101,7 @@ function reveal(i) {
           .sort(([d1], [d2]) => d1 - d2)
           .map(([d, indices]) => indices.map(j => [j, state.board.tiles[j]]));
   if (state.tilesLeftToReveal === 0) {
-    gameInProgress = false;
+    state.gameInProgress = false;
     return {gameWon: true, flags: state.board.flags, tiles: updatedTiles};
   } else {
     return {flags: state.board.flags, tiles: updatedTiles};
@@ -211,6 +218,5 @@ function forEachNbrIndex(i, fn) {
 }
 
 exports.state = state;
-exports.gameInProgress = gameInProgress;
 exports.restart = restart;
 exports.handleClick = handleClick;

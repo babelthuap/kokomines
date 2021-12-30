@@ -11,8 +11,7 @@ const {Server} = require('socket.io');
 const io = new Server(server);
 
 // My modules
-const {state, gameInProgress, restart, handleClick} =
-    require('./js/minesweeper.js');
+const {state, restart, handleClick} = require('./js/minesweeper.js');
 const {log, time} = require('./js/logger.js');
 
 // Initialize app
@@ -26,7 +25,10 @@ const hovering = {};
 function handleConnection(socket) {
   log(`user ${socket.id} connected`);
 
-  socket.emit('init', {gameInProgress, board: state.board});
+  socket.emit('init', {
+    gameInProgress: state.gameInProgress,
+    board: state.board,
+  });
 
   socket.on('hover', (i) => {
     if (i !== null) {
@@ -38,7 +40,7 @@ function handleConnection(socket) {
   });
 
   socket.on('click', ([i, button]) => {
-    if (gameInProgress) {
+    if (state.gameInProgress) {
       time('handleClick', () => {
         const update = handleClick(i, button);
         if (update) {
@@ -48,9 +50,10 @@ function handleConnection(socket) {
     }
   });
 
-  socket.on(
-      'restart',
-      () => restart() && io.emit('init', {gameInProgress, board: state.board}));
+  socket.on('restart', () => restart() && io.emit('init', {
+    gameInProgress: state.gameInProgress,
+    board: state.board,
+  }));
 
   socket.on('disconnect', () => {
     log(`user ${socket.id} disconnected`);

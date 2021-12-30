@@ -1,5 +1,6 @@
 'use strict';
 
+// Returns the (square of) the Euclidean distance between two tiles
 function dist(i, j, width) {
   const ix = i % width;
   const iy = (i - ix) / width;
