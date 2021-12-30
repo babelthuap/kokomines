@@ -1,12 +1,25 @@
 'use strict';
 
-const PORT = process.argv[2] || 80;
+const PORT = (parseInt(process.argv[2]) && parseInt(process.argv[2])) || 80;
 const express = require('express');
 const app = express();
 const http = require('http');
 const server = http.createServer(app);
 const {Server} = require('socket.io');
 const io = new Server(server);
+
+const DEBUG = process.argv.slice(2).some(arg => arg.includes('debug'));
+function log(...args) {
+  if (DEBUG) {
+    console.log(...args);
+  }
+}
+function time(label, fn) {
+  const start = process.hrtime.bigint();
+  fn();
+  const end = process.hrtime.bigint();
+  log(label, Number((end - start) / 1000n), 'μs');
+}
 
 app.get('/', (req, res) => {
   res.sendFile(__dirname + '/public/index.html');
@@ -28,13 +41,14 @@ server.listen(PORT, () => {
   if (primaryInterface) {
     console.log(`listening on ${primaryInterface.address}:${PORT}`);
   } else {
+    log('WARNING: No external IPv4 network interface in', networkInterfaces);
     console.log(`listening on port ${PORT}`);
   }
 });
 
 const hovering = {};
 function handleConnection(socket) {
-  console.log(`user ${socket.id} connected`);
+  log(`user ${socket.id} connected`);
 
   socket.emit('init', {gameInProgress, board: state.board});
 
@@ -49,17 +63,19 @@ function handleConnection(socket) {
 
   socket.on('click', ([i, button]) => {
     if (gameInProgress) {
-      const update = handleClick(i, button);
-      if (update) {
-        io.emit('update', update);
-      }
+      time('handleClick', () => {
+        const update = handleClick(i, button);
+        if (update) {
+          io.emit('update', update);
+        }
+      });
     }
   });
 
   socket.on('restart', restart);
 
   socket.on('disconnect', () => {
-    console.log(`user ${socket.id} disconnected`);
+    log(`user ${socket.id} disconnected`);
     delete hovering[socket.id];
     socket.broadcast.emit('hover', hovering);
   });
@@ -158,10 +174,9 @@ function clearMines(i) {
 // A new cavern has been discovered?
 function descubrido(i) {
   const updatedIndices = [];
-  const queue = new ArrayQueue();
-  queue.push(i);
-  while (queue.size() > 0) {
-    const j = queue.pop();
+  const stack = [i];
+  while (stack.length > 0) {
+    const j = stack.pop();
     const tile = state.board.tiles[j];
 
     if (tile[0 /* revealed */]) {
@@ -182,7 +197,7 @@ function descubrido(i) {
 
     updatedIndices.push(j);
     if (adjacentMines === 0 && !state.minePositions[j]) {
-      forEachNbrIndex(j, queue.push);
+      forEachNbrIndex(j, (nbr) => stack.push(nbr));
     }
   }
   return updatedIndices;
@@ -213,30 +228,32 @@ function flag(i) {
 
 // Creates a new game state
 function initGameState(width = 30, height = 16, density = 0.2) {
-  state.firstClick = true;
+  time('initGameState', () => {
+    state.firstClick = true;
 
-  const numTiles = width * height;
-  const numMines = Math.round(numTiles * density);
+    const numTiles = width * height;
+    const numMines = Math.round(numTiles * density);
 
-  state.tilesLeftToReveal = numTiles - numMines;
-  state.board = {
-    width: width,
-    height: height,
-    mines: numMines,
-    flags: 0,
-    tiles: new Array(numTiles),
-  };
-  for (let i = 0; i < numTiles; i++) {
-    state.board.tiles[i] = [false, null];  // [revealed, label]
-  }
+    state.tilesLeftToReveal = numTiles - numMines;
+    state.board = {
+      width: width,
+      height: height,
+      mines: numMines,
+      flags: 0,
+      tiles: new Array(numTiles),
+    };
+    for (let i = 0; i < numTiles; i++) {
+      state.board.tiles[i] = [false, null];  // [revealed, label]
+    }
 
-  state.minePositions = new Array(numTiles).fill(false);
-  for (let i = 0; i < numMines; i++) {
-    state.minePositions[i] = true;
-  }
-  shuffle(state.minePositions);
+    state.minePositions = new Array(numTiles).fill(false);
+    for (let i = 0; i < numMines; i++) {
+      state.minePositions[i] = true;
+    }
+    shuffle(state.minePositions);
 
-  state.adjacentMines = new Array(numTiles).fill(0);
+    state.adjacentMines = new Array(numTiles).fill(0);
+  });
 }
 
 // Executes a function for each neighboring tile index
@@ -285,24 +302,4 @@ function shuffle(arr) {
 // Gets random int in [0, n]
 function rand(n) {
   return Math.floor((n + 1) * Math.random());
-}
-
-function ArrayQueue() {
-  const array = [];
-  let headIndex = 0;
-  let size = 0;
-
-  this.size = () => size;
-  this.push = (value) => {
-    size++;
-    array.push(value);
-  };
-  this.pop = () => {
-    if (size === 0) {
-      return undefined;
-    } else {
-      size--;
-      return array[headIndex++];
-    }
-  };
 }
