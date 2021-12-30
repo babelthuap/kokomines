@@ -81,7 +81,7 @@ function reveal(i) {
   if (state.minePositions[i]) {
     const tile = state.board.tiles[i];
     tile[0] = true;
-    tile[1] = '💣';
+    tile[1] = '🧨';
     state.gameInProgress = false;
     return {gameWon: false, tiles: [[[i, tile]]]};
   }

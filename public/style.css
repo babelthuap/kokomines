@@ -175,6 +175,10 @@ body {
   cursor: pointer;
 }
 
+.tile.concealed.flag:after {
+  content: 'F';
+}
+
 .tile.concealed:hover {
   background-color: #aaa;
 }
@@ -197,11 +201,56 @@ body {
   100% { transform: translate(1px, -2px) rotate(-1deg); }
 }
 
-#footnotes {
+.footnotes {
   margin-top: 8px;
   text-align: center;
 }
 
-#footnotes a {
+.footnotes a {
   color: #fff;
+}
+
+/* ROCK RAIDERS THEME */
+
+body.rock-raiders {
+  background-color: #000;
+}
+
+.rock-raiders #board {
+  color: #aaa;
+}
+
+.rock-raiders .tile {
+  background-image: url('dirt.png');
+  border-bottom: 1px solid #100;
+  border-right: 1px solid #100;
+}
+
+.rock-raiders .tile.m1 {
+  color: #08d;
+}
+
+.rock-raiders .tile.m3 {
+  color: #f52;
+}
+
+.rock-raiders .tile.m4 {
+  color: #b4e;
+}
+
+.rock-raiders .tile.m6 {
+  color: #117;
+}
+
+.rock-raiders .tile.m7 {
+  color: #238557;
+}
+
+.rock-raiders .tile.concealed {
+  background-image: url('dirt_dark.png');
+  font-size: 20px;
+}
+
+.rock-raiders .tile.concealed.flag:after {
+  content: '🚩';
 }

@@ -7,6 +7,7 @@ const FLAGS_EL = document.getElementById('numFlags');
 const INPUTS = document.getElementById('inputs');
 const MINES_EL = document.getElementById('numMines');
 const RESTART_BUTTON = document.getElementById('restart');
+const ROCK_RAIDERS = document.getElementById('rock-raiders');
 const WINNER = createDiv('winner');
 WINNER.innerText = 'WINNER';
 
@@ -35,9 +36,13 @@ socket.on('init', (serverState) => {
           tileDiv.classList.add('concealed');
         }
         if (label) {
-          tileDiv.innerText = label;
-          if (typeof label === 'number') {
-            tileDiv.classList.add(`m${label}`);
+          if (label === 'F') {
+            tileDiv.classList.add('flag');
+          } else {
+            tileDiv.innerText = label;
+            if (typeof label === 'number') {
+              tileDiv.classList.add(`m${label}`);
+            }
           }
         }
         tileDiv.i = i;
@@ -87,16 +92,22 @@ function updateEquidistantTiles(equidistantTiles) {
     for (let [i, tile] of equidistantTiles) {
       const tileDiv = getTileDiv(i);
       const [revealed, label] = tile;
+      console.log('tile:', tile);
       if (revealed) {
         tileDiv.classList.remove('concealed');
       } else {
         tileDiv.classList.add('concealed');
       }
-      tileDiv.innerText = label || '';
-      if (typeof label === 'number') {
-        tileDiv.classList.add(`m${label}`);
-      } else if (label === '💣') {
-        tileDiv.classList.add('mine');
+      if (label === 'F') {
+        tileDiv.classList.add('flag');
+      } else {
+        tileDiv.classList.remove('flag');
+        tileDiv.innerText = label || '';
+        if (typeof label === 'number') {
+          tileDiv.classList.add(`m${label}`);
+        } else if (label === '💣') {
+          tileDiv.classList.add('mine');
+        }
       }
     }
     resolve();
@@ -142,10 +153,10 @@ RESTART_BUTTON.addEventListener('click', () => {
 BOARD_EL.addEventListener('mousedown', (e) => {
   if (gameInProgress && e.target.classList.contains('concealed')) {
     // Optimistic updates
-    const hasText = e.target.innerText !== '';
+    const hasFlag = e.target.classList.contains('flag');
     if (e.button === 0) {
       // Left click
-      if (hasText) {
+      if (hasFlag) {
         // Tried to reveal a flagged tile
         return;
       } else {
@@ -153,10 +164,10 @@ BOARD_EL.addEventListener('mousedown', (e) => {
       }
     } else {
       // Right click
-      if (hasText) {
-        e.target.innerText = '';
+      if (hasFlag) {
+        e.target.classList.remove('flag');
       } else {
-        e.target.innerText = 'F';
+        e.target.classList.add('flag');
       }
     }
     socket.emit('click', [e.target.i, e.button]);
@@ -166,6 +177,14 @@ BOARD_EL.addEventListener('mousedown', (e) => {
 BOARD_EL.addEventListener('contextmenu', (e) => {
   e.preventDefault();
   return false;
+});
+
+ROCK_RAIDERS.addEventListener('change', (e) => {
+  if (e.target.checked) {
+    document.body.classList.add('rock-raiders');
+  } else {
+    document.body.classList.remove('rock-raiders');
+  }
 });
 
 function getTileDiv(i) {
