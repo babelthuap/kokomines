@@ -88,8 +88,14 @@ function reveal(i) {
     tile[0] = true;
     tile[1] = 'M';
     gameInProgress = false;
-    updatedIndices = minePositions.reduce((arr, _, i) => {
-      arr.push(i);
+    updatedIndices = minePositions.reduce((arr, hasMine, index) => {
+      if (hasMine) {
+        board.tiles[index][1] = 'M';
+        arr.push(index);
+      } else if (board.tiles[index][1] === 'F') {
+        board.tiles[index][1] = '_';
+        arr.push(index);
+      }
       return arr;
     }, []);
     result.gameWon = false;

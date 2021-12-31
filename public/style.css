@@ -84,7 +84,8 @@ body {
   vertical-align: middle;
 }
 
-.tile.mine:after {
+.tile.mine:after,
+.tile.concealed.flag.mine:after {
   content: '💣';
 }
 
@@ -232,7 +233,8 @@ body.rock-raiders {
   border-right: 1px solid #100;
 }
 
-.rock-raiders .tile.mine:after {
+.rock-raiders .tile.mine:after,
+.tile.concealed.flag.mine:after {
   content: '🧨';
 }
 
@@ -262,6 +264,9 @@ body.rock-raiders {
 
 .rock-raiders .tile.concealed {
   background-image: url('rock_blend.png');
+}
+
+.rock-raiders .tile.concealed.flag {
   font-size: 20px;
 }
 
