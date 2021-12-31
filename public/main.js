@@ -189,10 +189,16 @@ BOARD_EL.addEventListener('contextmenu', (e) => {
 ROCK_RAIDERS.addEventListener('change', (e) => {
   if (e.target.checked) {
     document.body.classList.add('rock-raiders');
+    localStorage.setItem('rockRaidersGraphics', true);
   } else {
     document.body.classList.remove('rock-raiders');
+    localStorage.removeItem('rockRaidersGraphics');
   }
 });
+
+if (localStorage.rockRaidersGraphics) {
+  ROCK_RAIDERS.checked = true;
+}
 
 function getTileDiv(i) {
   const x = i % width;
