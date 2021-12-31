@@ -69,6 +69,7 @@ socket.on('update', (update) => {
     window.requestAnimationFrame(() => {
       if (update.gameWon) {
         BOARD_EL.appendChild(WINNER);
+        fireworks();
       } else {
         BOARD_EL.appendChild(BOOM);
         [BOARD_EL, INPUTS, COUNTERS].forEach(el => el.classList.add('shake'));
@@ -212,3 +213,20 @@ function createDiv(className) {
   div.classList.add(className);
   return div;
 }
+
+// Yay!
+function fireworks() {
+  const pyro = createDiv('pyro');
+  const before = createDiv('before');
+  const after = createDiv('after');
+  pyro.appendChild(before);
+  pyro.appendChild(after);
+  BOARD_EL.appendChild(pyro);
+}
+
+(() => {
+  const link = document.createElement('link');
+  link.rel = 'stylesheet';
+  link.href = 'fireworks.css';
+  document.head.appendChild(link);
+})();

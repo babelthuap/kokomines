@@ -249,11 +249,11 @@ body.rock-raiders {
 }
 
 .rock-raiders .tile.m6 {
-  color: #117;
+  color: #002;
 }
 
 .rock-raiders .tile.m7 {
-  color: #238557;
+  color: #bfb;
 }
 
 .rock-raiders .tile.other {
@@ -271,4 +271,12 @@ body.rock-raiders {
 
 .rock-raiders .tile.concealed:hover {
   opacity: 0.5;
+}
+
+.rock-raiders .boom {
+  border-color: red;
+}
+
+.rock-raiders .winner {
+  border-color: green;
 }
