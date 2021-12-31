@@ -1,7 +1,7 @@
 'use strict';
 
 const PORT = process.env.PORT ||
-    (parseInt(process.argv[2]) && parseInt(process.argv[2])) || 80;
+    (parseInt(process.argv[2]) && parseInt(process.argv[2])) || 5000;
 
 // External modules
 const express = require('express');
