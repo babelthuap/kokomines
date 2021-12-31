@@ -28,7 +28,6 @@ function restart() {
     return false;
   }
 }
-restart.ing = false;
 
 // Handles a click on the given tile
 function handleClick(i, button) {

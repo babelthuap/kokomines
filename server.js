@@ -23,6 +23,7 @@ server.listen(PORT, handleServerStartup);
 
 // Handles communication with a socket
 const hovering = {};
+const recentlyClicked = new Map();
 function handleConnection(socket) {
   log(`user ${socket.id} connected`);
 
@@ -38,7 +39,24 @@ function handleConnection(socket) {
   });
 
   socket.on('click', ([i, button]) => {
-    if (getPublicState().gameInProgress) {
+    const state = getPublicState();
+    if (state.gameInProgress) {
+      // Avoid conflicting clicks from different clients
+      const clicked = recentlyClicked.get(i);
+      if (clicked) {
+        if (clicked.socketId !== socket.id) {
+          // Notify this client that the update failed
+          return socket.emit('update', {tiles: [[[i, state.board.tiles[i]]]]});
+        } else {
+          clearTimeout(clicked.timeoutId);
+        }
+      }
+      recentlyClicked.set(i, {
+        socketId: socket.id,
+        timeoutId: setTimeout(() => recentlyClicked.delete(i), 500),
+      });
+
+      // Handle the darn click
       time('handleClick', () => {
         const update = handleClick(i, button);
         if (update) {
