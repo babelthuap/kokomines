@@ -177,11 +177,10 @@ body {
 .tile.concealed {
   background-color: #bbb;
   cursor: pointer;
-  font-size: 20px;
 }
 
 .tile.concealed.flag:after {
-  content: '🚩';
+  content: 'F';
 }
 
 .tile.concealed:hover {
@@ -263,6 +262,7 @@ body.rock-raiders {
 
 .rock-raiders .tile.concealed {
   background-image: url('rock_blend.png');
+  font-size: 20px;
 }
 
 .rock-raiders .tile.concealed.flag:after {
