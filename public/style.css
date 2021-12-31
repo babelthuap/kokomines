@@ -84,6 +84,10 @@ body {
   vertical-align: middle;
 }
 
+.tile.mine:after {
+  content: '💣';
+}
+
 .xs .tile {
   font-size: 10px;
   height: 12px;
@@ -223,8 +227,13 @@ body.rock-raiders {
 
 .rock-raiders .tile {
   background-image: url('dirt.png');
+  background-size: contain;
   border-bottom: 1px solid #100;
   border-right: 1px solid #100;
+}
+
+.rock-raiders .tile.mine:after {
+  content: '🧨';
 }
 
 .rock-raiders .tile.m1 {
@@ -247,11 +256,19 @@ body.rock-raiders {
   color: #238557;
 }
 
+.rock-raiders .tile.other {
+  opacity: 0.5;
+}
+
 .rock-raiders .tile.concealed {
-  background-image: url('dirt_dark.png');
+  background-image: url('rock_blend.png');
   font-size: 20px;
 }
 
 .rock-raiders .tile.concealed.flag:after {
   content: '🚩';
+}
+
+.rock-raiders .tile.concealed:hover {
+  opacity: 0.5;
 }

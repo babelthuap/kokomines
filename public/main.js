@@ -36,13 +36,18 @@ socket.on('init', (serverState) => {
           tileDiv.classList.add('concealed');
         }
         if (label) {
-          if (label === 'F') {
-            tileDiv.classList.add('flag');
-          } else {
-            tileDiv.innerText = label;
-            if (typeof label === 'number') {
-              tileDiv.classList.add(`m${label}`);
-            }
+          switch (label) {
+            case 'F':
+              tileDiv.classList.add('flag');
+              break;
+            case 'M':
+              tileDiv.classList.add('mine');
+              break;
+            default:
+              tileDiv.innerText = label;
+              if (typeof label === 'number') {
+                tileDiv.classList.add(`m${label}`);
+              }
           }
         }
         tileDiv.i = i;
@@ -92,22 +97,24 @@ function updateEquidistantTiles(equidistantTiles) {
     for (let [i, tile] of equidistantTiles) {
       const tileDiv = getTileDiv(i);
       const [revealed, label] = tile;
-      console.log('tile:', tile);
       if (revealed) {
         tileDiv.classList.remove('concealed');
       } else {
         tileDiv.classList.add('concealed');
       }
-      if (label === 'F') {
-        tileDiv.classList.add('flag');
-      } else {
-        tileDiv.classList.remove('flag');
-        tileDiv.innerText = label || '';
-        if (typeof label === 'number') {
-          tileDiv.classList.add(`m${label}`);
-        } else if (label === '💣') {
+      switch (label) {
+        case 'F':
+          tileDiv.classList.add('flag');
+          break;
+        case 'M':
           tileDiv.classList.add('mine');
-        }
+          break;
+        default:
+          tileDiv.classList.remove('flag');
+          tileDiv.innerText = label || '';
+          if (typeof label === 'number') {
+            tileDiv.classList.add(`m${label}`);
+          }
       }
     }
     resolve();
