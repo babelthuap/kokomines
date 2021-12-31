@@ -180,7 +180,7 @@ body {
 }
 
 .tile.concealed.flag:after {
-  content: 'F';
+  content: '🚩';
 }
 
 .tile.concealed:hover {
@@ -266,7 +266,7 @@ body.rock-raiders {
 }
 
 .rock-raiders .tile.concealed.flag:after {
-  content: '🚩';
+  content: '🚧';
 }
 
 .rock-raiders .tile.concealed:hover {
