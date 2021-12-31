@@ -79,16 +79,29 @@ function reveal(i) {
     firstClick = false;
     clearMines(i);
   }
-  // Go boom?
+
+  let updatedIndices;
+  let result = {};
   if (minePositions[i]) {
+    // Go boom
     const tile = board.tiles[i];
     tile[0] = true;
     tile[1] = 'M';
     gameInProgress = false;
-    return {gameWon: false, tiles: [[[i, tile]]]};
+    updatedIndices = minePositions.reduce((arr, _, i) => {
+      arr.push(i);
+      return arr;
+    }, []);
+    result.gameWon = false;
+  } else {
+    // Reveal a non-mine tile
+    updatedIndices = descubrido(i);
+    if (tilesLeftToReveal === 0) {
+      gameInProgress = false;
+      result.gameWon = true;
+    }
   }
-  // Reveal a non-mine tile
-  const updatedIndices = descubrido(i);
+
   const updatedTiles = updatedIndices.length === 1 ?
       [[[i, board.tiles[i]]]] :
       Object
@@ -102,12 +115,10 @@ function reveal(i) {
               {}))
           .sort(([d1], [d2]) => d1 - d2)
           .map(([d, indices]) => indices.map(j => [j, board.tiles[j]]));
-  if (tilesLeftToReveal === 0) {
-    gameInProgress = false;
-    return {gameWon: true, flags: board.flags, tiles: updatedTiles};
-  } else {
-    return {flags: board.flags, tiles: updatedTiles};
-  }
+
+  result.flags = board.flags;
+  result.tiles = updatedTiles;
+  return result;
 }
 
 // Clears all surrounding tiles, moving any mines to random new locations

@@ -19,6 +19,7 @@ let width = 0;
 
 socket.on('init', (serverState) => {
   console.log('socket.id:', socket.id);
+  restarting = true;
   window.requestAnimationFrame(() => {
     const board = serverState.board;
     BOARD_EL.innerHTML = '';
@@ -57,9 +58,9 @@ socket.on('init', (serverState) => {
     }
     CONTROLS.style.width = `${BOARD_EL.scrollWidth}px`;
 
-    restarting = false;
     gameInProgress = serverState.gameInProgress;
     RESTART_BUTTON.style.visibility = gameInProgress ? 'hidden' : '';
+    window.requestAnimationFrame(() => restarting = false);
   });
 });
 
@@ -89,6 +90,9 @@ socket.on('update', (update) => {
 
 async function updateTiles(tiles) {
   for (let equidistantTiles of tiles) {
+    if (restarting) {
+      return;
+    }
     await updateEquidistantTiles(equidistantTiles);
   }
 }
