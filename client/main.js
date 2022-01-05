@@ -4,10 +4,15 @@ BOOM.innerText = 'BOOM';
 const CONTROLS = document.getElementById('controls');
 const COUNTERS = document.getElementById('counters');
 const FLAGS_EL = document.getElementById('numFlags');
+const HOW_TO_PLAY = document.getElementById('how-to-play');
 const INPUTS = document.getElementById('inputs');
+const INSTRUCTIONS = document.getElementById('instructions');
 const MINES_EL = document.getElementById('numMines');
+const MULTIPLAYER = document.getElementById('multiplayer');
 const RESTART_BUTTON = document.getElementById('restart');
+const RETURN_TO_MENU = document.getElementById('return-to-menu');
 const ROCK_RAIDERS = document.getElementById('rock-raiders');
+const SINGLEPLAYER = document.getElementById('singleplayer');
 const WINNER = createDiv('winner');
 WINNER.innerText = 'WINNER';
 
@@ -192,6 +197,23 @@ BOARD_EL.addEventListener('mousedown', (e) => {
 BOARD_EL.addEventListener('contextmenu', (e) => {
   e.preventDefault();
   return false;
+});
+
+HOW_TO_PLAY.addEventListener('click', () => {
+  INSTRUCTIONS.style.display = INSTRUCTIONS.style.display ? '' : 'none';
+});
+
+MULTIPLAYER.addEventListener('click', () => {
+  document.body.classList.add('play');
+  CONTROLS.style.width = `${BOARD_EL.scrollWidth}px`;
+});
+
+SINGLEPLAYER.addEventListener('click', () => {
+  window.open('https://babelthuap.github.io/mines', '_blank');
+});
+
+RETURN_TO_MENU.addEventListener('click', () => {
+  document.body.classList.remove('play');
 });
 
 ROCK_RAIDERS.addEventListener('change', (e) => {

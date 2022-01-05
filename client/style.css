@@ -5,6 +5,45 @@ body {
   margin: 8px;
 }
 
+button {
+  font-family: Courier, monospace;
+  font-size: 20px;
+  margin: 0 8px;
+}
+
+#menu {
+  background-color: #bbb;
+  border-radius: 16px;
+  box-shadow: 8px 8px 8px #222;
+  color: #111;
+  margin: auto;
+  margin-bottom: 10vh;
+  margin-top: 10vh;
+  padding: 16px;
+  text-align: center;
+  width: fit-content;
+}
+
+#menu hr {
+  margin-bottom: 16px;
+}
+
+.play #menu {
+  display: none;
+}
+
+#instructions {
+  text-align: left;
+}
+
+#game {
+  display: none;
+}
+
+.play #game {
+  display: block;
+}
+
 #controls {
   font-size: 16px;
   margin: auto;
@@ -28,8 +67,6 @@ body {
   background-color: #000;
   color: #fff;
   cursor: pointer;
-  font-family: Courier, monospace;
-  font-size: 20px;
   margin: 0 24px;
 }
 
@@ -66,6 +103,7 @@ body {
   color: #000;
   display: table;
   margin: auto;
+  margin-bottom: 32px;
   position: relative;
   user-select: none;
 }
@@ -222,8 +260,19 @@ body.rock-raiders {
   background-color: #000;
 }
 
+.rock-raiders #menu {
+  background-color: #8b4513;
+  box-shadow: 8px 8px 8px #555;
+  color: #fff;
+}
+
 .rock-raiders #board {
   color: #aaa;
+}
+
+.rock-raiders #return-to-menu {
+  background-color: #000;
+  color: #fff;
 }
 
 .rock-raiders .tile {
