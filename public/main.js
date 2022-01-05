@@ -166,20 +166,20 @@ BOARD_EL.addEventListener('mousedown', (e) => {
   if (gameInProgress && e.target.classList.contains('concealed')) {
     // Optimistic updates
     const hasFlag = e.target.classList.contains('flag');
-    if (e.button === 0) {
+    if (e.button !== 0 || e.altKey || e.ctrlKey || e.metaKey) {
+      // Right click
+      if (hasFlag) {
+        e.target.classList.remove('flag');
+      } else {
+        e.target.classList.add('flag');
+      }
+    } else {
       // Left click
       if (hasFlag) {
         // Tried to reveal a flagged tile
         return;
       } else {
         e.target.classList.remove('concealed');
-      }
-    } else {
-      // Right click
-      if (hasFlag) {
-        e.target.classList.remove('flag');
-      } else {
-        e.target.classList.add('flag');
       }
     }
     socket.emit('click', [e.target.i, e.button]);

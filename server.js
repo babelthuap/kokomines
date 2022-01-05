@@ -79,7 +79,7 @@ function handleConnection(socket) {
 function handleServerStartup() {
   const networkInterfaces = require('os').networkInterfaces();
   const primaryInterface = Object.values(networkInterfaces)
-                               .flatMap(i => i)
+                               .flat()
                                .find(i => i.family === 'IPv4' && !i.internal);
   if (primaryInterface) {
     console.log(`listening on ${primaryInterface.address}:${PORT}`);
