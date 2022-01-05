@@ -2,10 +2,10 @@
   "name": "kokomines",
   "version": "1.1.0",
   "description": "LAN multiplayer minesweeper",
-  "main": "server.js",
+  "main": "server/app.js",
   "scripts": {
     "test": "echo \"Error: no test specified\" && exit 1",
-    "start": "node server.js"
+    "start": "node server/app.js"
   },
   "author": "nicholas.babelthuap@gmail.com",
   "license": "ISC",

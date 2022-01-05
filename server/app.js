@@ -1,6 +1,6 @@
 'use strict';
 
-const PORT = process.env.PORT ||
+const PORT = (parseInt(process.env.PORT) && parseInt(process.env.PORT)) ||
     (parseInt(process.argv[2]) && parseInt(process.argv[2])) || 5000;
 
 // External modules
@@ -12,12 +12,11 @@ const {Server} = require('socket.io');
 const io = new Server(server);
 
 // My modules
-const {getPublicState, restart, handleClick} = require('./js/minesweeper.js');
-const {log, time} = require('./js/logger.js');
+const {getPublicState, restart, handleClick} = require('./minesweeper.js');
+const {log, time} = require('./logger.js');
 
 // Initialize app
-app.get('/', (req, res) => res.sendFile(__dirname + '/public/index.html'));
-app.use(express.static('public'));
+app.use(express.static('client'));
 io.on('connection', handleConnection);
 server.listen(PORT, handleServerStartup);
 
