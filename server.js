@@ -38,7 +38,7 @@ function handleConnection(socket) {
     socket.broadcast.emit('hover', hovering);
   });
 
-  socket.on('click', ([i, button]) => {
+  socket.on('click', ([i, rightClick]) => {
     const state = getPublicState();
     if (state.gameInProgress) {
       // Avoid conflicting clicks from different clients
@@ -58,7 +58,7 @@ function handleConnection(socket) {
 
       // Handle the darn click
       time('handleClick', () => {
-        const update = handleClick(i, button);
+        const update = handleClick(i, rightClick);
         if (update) {
           io.emit('update', update);
         }

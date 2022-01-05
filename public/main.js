@@ -164,9 +164,10 @@ RESTART_BUTTON.addEventListener('click', () => {
 
 BOARD_EL.addEventListener('mousedown', (e) => {
   if (gameInProgress && e.target.classList.contains('concealed')) {
-    // Optimistic updates
+    const rightClick = e.button !== 0 || e.altKey || e.ctrlKey || e.metaKey;
     const hasFlag = e.target.classList.contains('flag');
-    if (e.button !== 0 || e.altKey || e.ctrlKey || e.metaKey) {
+    // Optimistic updates
+    if (rightClick) {
       // Right click
       if (hasFlag) {
         e.target.classList.remove('flag');
@@ -182,8 +183,10 @@ BOARD_EL.addEventListener('mousedown', (e) => {
         e.target.classList.remove('concealed');
       }
     }
-    socket.emit('click', [e.target.i, e.button]);
+    socket.emit('click', [e.target.i, rightClick]);
   }
+  e.stopPropagation();
+  return false;
 });
 
 BOARD_EL.addEventListener('contextmenu', (e) => {

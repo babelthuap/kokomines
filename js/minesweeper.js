@@ -30,13 +30,13 @@ function restart() {
 }
 
 // Handles a click on the given tile
-function handleClick(i, button) {
+function handleClick(i, rightClick) {
   const [revealed] = board.tiles[i];
   if (!revealed) {
-    if (button === 0) {
-      return reveal(i);
-    } else {
+    if (rightClick) {
       return flag(i);
+    } else {
+      return reveal(i);
     }
   }
 }
