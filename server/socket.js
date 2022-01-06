@@ -6,13 +6,20 @@ const {log, time} = require('./logger.js');
 // Handles communication with a socket
 function handleConnection(socket, io) {
   log(`user ${socket.id} connected`);
-  socket.emit('init', getPublicState());
-  socket
-      .on('init', () => socket.emit('init', getPublicState()))
+  socket.on('init', (username) => handleInit(username, socket, io))
       .on('click', (data) => handleClickEvent(data, socket, io))
       .on('hover', (i) => handleHover(i, socket))
       .on('restart', () => restart() && io.emit('init', getPublicState()))
       .on('disconnect', () => handleDisconnect(socket));
+}
+
+const usernames = {};
+function handleInit(username, socket, io) {
+  socket.emit('init', getPublicState());
+  if (username) {
+    usernames[socket.id] = username.trim().replace(/,/g, '').slice(0, 16);
+    io.emit('usernames', usernames);
+  }
 }
 
 const recentlyClicked = new Map();
@@ -57,7 +64,9 @@ function handleHover(i, socket) {
 
 function handleDisconnect(socket) {
   log(`user ${socket.id} disconnected`);
+  delete usernames[socket.id];
   delete hovering[socket.id];
+  socket.broadcast.emit('usernames', usernames);
   socket.broadcast.emit('hover', hovering);
 }
 

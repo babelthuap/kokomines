@@ -12,6 +12,7 @@
   const INSTRUCTIONS = document.getElementById('instructions');
   const MINES_EL = document.getElementById('numMines');
   const MULTIPLAYER = document.getElementById('multiplayer');
+  const PLAYERS = document.getElementById('players');
   const RESTART_BUTTON = document.getElementById('restart');
   const RETURN_TO_MENU = document.getElementById('return-to-menu');
   const ROCK_RAIDERS = document.getElementById('rock-raiders');
@@ -24,24 +25,23 @@
   let multiplayerState = null;
   MULTIPLAYER.addEventListener('click', () => {
     if (multiplayerState === null) {
-      multiplayerState = initState(window.io);
+      state = multiplayerState = initState(window.io, prompt('Username'));
     } else {
-      multiplayerState.socket.emit('init');
+      state = multiplayerState;
+      state.socket.emit('init');
     }
-    state = multiplayerState;
     document.body.classList.add('play');
-    CONTROLS.style.width = `${BOARD_EL.scrollWidth}px`;
   });
 
   let singleplayerState = null;
   SINGLEPLAYER.addEventListener('click', () => {
     if (singleplayerState === null) {
-      singleplayerState = initState(window.ioLocal);
+      state = singleplayerState = initState(window.ioLocal);
+    } else {
+      state = singleplayerState;
+      state.socket.emit('init');
     }
-    state = singleplayerState;
-    state.socket.emit('init');
     document.body.classList.add('play');
-    CONTROLS.style.width = `${BOARD_EL.scrollWidth}px`;
   });
 
   HOW_TO_PLAY.addEventListener('click', () => {
@@ -52,7 +52,7 @@
     document.body.classList.remove('play');
   });
 
-  function initState(socketProvider) {
+  function initState(socketProvider, username) {
     const state = {
       socket: socketProvider(),
       gameInProgress: false,
@@ -63,6 +63,10 @@
     state.socket.on('init', handleSocketInit.bind(state));
     state.socket.on('update', handleUpdate.bind(state));
     state.socket.on('hover', handleHover.bind(state));
+    state.socket.on('usernames', handleUsernames.bind(state));
+    state.username =
+        (username || state.socket.id).trim().replace(/,/g, '').slice(0, 16);
+    state.socket.emit('init', state.username);
     return state;
   }
 
@@ -106,6 +110,7 @@
         BOARD_EL.appendChild(rowDiv);
       }
       CONTROLS.style.width = `${BOARD_EL.scrollWidth}px`;
+      PLAYERS.style.width = `${BOARD_EL.scrollWidth}px`;
 
       this.gameInProgress = serverState.gameInProgress;
       RESTART_BUTTON.style.visibility = this.gameInProgress ? 'hidden' : '';
@@ -195,20 +200,33 @@
     this.hoverIndices = newHoverIndices;
   }
 
+  function handleUsernames(usernames) {
+    console.log(usernames);
+    const arr = [];
+    for (let id in usernames) {
+      const name =
+          (id === this.socket.id) ? (usernames[id] + ' (you)') : usernames[id];
+      arr.push(name);
+    }
+    PLAYERS.innerText = `PLAYERS: ${arr.sort().join(', ')}`;
+  }
+
   BOARD_EL.addEventListener('mouseover', (e) => {
     if ('i' in e.target) {
       state.socket.emit('hover', e.target.i);
     }
   });
 
-  RESTART_BUTTON.addEventListener('click', () => {
+  RESTART_BUTTON.addEventListener('click', triggerRestart);
+
+  function triggerRestart() {
     if (!state.gameInProgress && !state.restarting) {
       state.restarting = true;
       state.socket.emit('restart');
       window.requestAnimationFrame(
           () => RESTART_BUTTON.style.visibility = 'hidden');
     }
-  });
+  }
 
   let canRightClick = false;
   BOARD_EL.addEventListener('mousedown', (e) => {
@@ -234,6 +252,10 @@
         }
       }
       state.socket.emit('click', [e.target.i, rightClick]);
+    } else if (
+        e.target.classList.contains('boom') ||
+        e.target.classList.contains('winner')) {
+      triggerRestart();
     }
     e.stopPropagation();
     return false;

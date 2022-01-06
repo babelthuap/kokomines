@@ -103,7 +103,6 @@ button {
   color: #000;
   display: table;
   margin: auto;
-  margin-bottom: 32px;
   position: relative;
   user-select: none;
 }
@@ -242,6 +241,15 @@ button {
   80% { transform: translate(-1px, -1px) rotate(1deg); }
   90% { transform: translate(1px, 2px) rotate(0deg); }
   100% { transform: translate(1px, -2px) rotate(-1deg); }
+}
+
+#players {
+  margin: auto;
+  margin-top: 24px;
+}
+
+#return-to-menu {
+  margin-top: 16px;
 }
 
 .footnotes {
