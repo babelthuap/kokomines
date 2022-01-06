@@ -210,6 +210,7 @@
     }
   });
 
+  let canRightClick = false;
   BOARD_EL.addEventListener('mousedown', (e) => {
     if (state.gameInProgress && e.target.classList.contains('concealed')) {
       const rightClick = e.button !== 0 || e.altKey || e.ctrlKey || e.metaKey;
@@ -217,6 +218,7 @@
       // Optimistic updates
       if (rightClick) {
         // Right click
+        canRightClick = true;
         if (hasFlag) {
           e.target.classList.remove('flag');
         } else {
@@ -238,6 +240,11 @@
   });
 
   BOARD_EL.addEventListener('contextmenu', (e) => {
+    if (!canRightClick && state.gameInProgress &&
+        e.target.classList.contains('concealed')) {
+      // Simulate right-click on mobile
+      state.socket.emit('click', [e.target.i, /* rightClick= */ true]);
+    }
     e.preventDefault();
     return false;
   });
