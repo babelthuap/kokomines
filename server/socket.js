@@ -7,7 +7,9 @@ const {log, time} = require('./logger.js');
 function handleConnection(socket, io) {
   log(`user ${socket.id} connected`);
   socket.emit('init', getPublicState());
-  socket.on('click', (data) => handleClickEvent(data, socket, io))
+  socket
+      .on('init', () => socket.emit('init', getPublicState()))
+      .on('click', (data) => handleClickEvent(data, socket, io))
       .on('hover', (i) => handleHover(i, socket))
       .on('restart', () => restart() && io.emit('init', getPublicState()))
       .on('disconnect', () => handleDisconnect(socket));
