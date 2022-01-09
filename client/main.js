@@ -1,28 +1,14 @@
 import {ioLocal} from './localserver.js';
+import {getIdEl} from './util.js';
 
-const BOARD_EL = document.getElementById('board');
-const BOOM = createDiv('boom');
-BOOM.innerText = 'BOOM';
-const CONTROLS = document.getElementById('controls');
-const COUNTERS = document.getElementById('counters');
-const FLAGS_EL = document.getElementById('numFlags');
-const HOW_TO_PLAY = document.getElementById('how-to-play');
-const INPUTS = document.getElementById('inputs');
-const INSTRUCTIONS = document.getElementById('instructions');
-const MINES_EL = document.getElementById('numMines');
-const MULTIPLAYER = document.getElementById('multiplayer');
-const PLAYERS = document.getElementById('players');
-const RESTART_BUTTON = document.getElementById('restart');
-const RETURN_TO_MENU = document.getElementById('return-to-menu');
-const ROCK_RAIDERS = document.getElementById('rock-raiders');
-const SINGLEPLAYER = document.getElementById('singleplayer');
-const WINNER = createDiv('winner');
-WINNER.innerText = 'WINNER';
+const EL = getIdEl(document);
+EL.boom = createDiv('boom');
+EL.winner = createDiv('winner');
 
 let state = null;
 
 let multiplayerState = null;
-MULTIPLAYER.addEventListener('click', () => {
+EL.multiplayer.addEventListener('click', () => {
   if (multiplayerState === null) {
     state = multiplayerState = initState(window.io, prompt('Username'));
   } else {
@@ -33,7 +19,7 @@ MULTIPLAYER.addEventListener('click', () => {
 });
 
 let singleplayerState = null;
-SINGLEPLAYER.addEventListener('click', () => {
+EL.singleplayer.addEventListener('click', () => {
   if (singleplayerState === null) {
     state = singleplayerState = initState(ioLocal);
   } else {
@@ -43,11 +29,11 @@ SINGLEPLAYER.addEventListener('click', () => {
   document.body.classList.add('play');
 });
 
-HOW_TO_PLAY.addEventListener('click', () => {
-  INSTRUCTIONS.style.display = INSTRUCTIONS.style.display ? '' : 'none';
+EL.howToPlay.addEventListener('click', () => {
+  EL.instructions.style.display = EL.instructions.style.display ? '' : 'none';
 });
 
-RETURN_TO_MENU.addEventListener('click', () => {
+EL.returnToMenu.addEventListener('click', () => {
   document.body.classList.remove('play');
 });
 
@@ -74,10 +60,10 @@ function handleSocketInit(serverState) {
   this.restarting = true;
   window.requestAnimationFrame(() => {
     const board = serverState.board;
-    BOARD_EL.innerHTML = '';
-    FLAGS_EL.innerText = board.flags;
-    MINES_EL.innerText = board.mines;
-    [BOARD_EL, INPUTS, COUNTERS].forEach(el => el.classList.remove('shake'));
+    EL.board.innerHTML = '';
+    EL.numFlags.innerText = board.flags;
+    EL.numMines.innerText = board.mines;
+    [EL.board, EL.inputs, EL.counters].forEach(el => el.classList.remove('shake'));
 
     this.width = board.width;
     for (let row = 0; row < board.height; row++) {
@@ -106,13 +92,13 @@ function handleSocketInit(serverState) {
         tileDiv.i = i;
         rowDiv.appendChild(tileDiv);
       }
-      BOARD_EL.appendChild(rowDiv);
+      EL.board.appendChild(rowDiv);
     }
-    CONTROLS.style.width = `${BOARD_EL.scrollWidth}px`;
-    PLAYERS.style.width = `${BOARD_EL.scrollWidth}px`;
+    EL.controls.style.width = `${EL.board.scrollWidth}px`;
+    EL.players.style.width = `${EL.board.scrollWidth}px`;
 
     this.gameInProgress = serverState.gameInProgress;
-    RESTART_BUTTON.style.visibility = this.gameInProgress ? 'hidden' : '';
+    EL.restart.style.visibility = this.gameInProgress ? 'hidden' : '';
     window.requestAnimationFrame(() => this.restarting = false);
   });
 }
@@ -122,18 +108,18 @@ function handleUpdate(update) {
     this.gameInProgress = false;
     window.requestAnimationFrame(() => {
       if (update.gameWon) {
-        BOARD_EL.appendChild(WINNER);
+        EL.board.appendChild(EL.winner);
         fireworks();
       } else {
-        BOARD_EL.appendChild(BOOM);
-        [BOARD_EL, INPUTS, COUNTERS].forEach(el => el.classList.add('shake'));
+        EL.board.appendChild(EL.boom);
+        [EL.board, EL.inputs, EL.counters].forEach(el => el.classList.add('shake'));
       }
-      RESTART_BUTTON.style.visibility = '';
+      EL.restart.style.visibility = '';
     });
   }
   if ('flags' in update) {
     window.requestAnimationFrame(() => {
-      FLAGS_EL.innerText = update.flags;
+      EL.numFlags.innerText = update.flags;
     });
   }
   if ('tiles' in update) {
@@ -207,28 +193,28 @@ function handleUsernames(usernames) {
         (id === this.socket.id) ? (usernames[id] + ' (you)') : usernames[id];
     arr.push(name);
   }
-  PLAYERS.innerText = `PLAYERS: ${arr.sort().join(', ')}`;
+  EL.players.innerText = `PLAYERS: ${arr.sort().join(', ')}`;
 }
 
-BOARD_EL.addEventListener('mouseover', (e) => {
+EL.board.addEventListener('mouseover', (e) => {
   if ('i' in e.target) {
     state.socket.emit('hover', e.target.i);
   }
 });
 
-RESTART_BUTTON.addEventListener('click', triggerRestart);
+EL.restart.addEventListener('click', triggerRestart);
 
 function triggerRestart() {
   if (!state.gameInProgress && !state.restarting) {
     state.restarting = true;
     state.socket.emit('restart');
     window.requestAnimationFrame(
-        () => RESTART_BUTTON.style.visibility = 'hidden');
+        () => EL.restart.style.visibility = 'hidden');
   }
 }
 
 let canRightClick = false;
-BOARD_EL.addEventListener('mousedown', (e) => {
+EL.board.addEventListener('mousedown', (e) => {
   if (state.gameInProgress && e.target.classList.contains('concealed')) {
     const rightClick = e.button !== 0 || e.altKey || e.ctrlKey || e.metaKey;
     const hasFlag = e.target.classList.contains('flag');
@@ -260,7 +246,7 @@ BOARD_EL.addEventListener('mousedown', (e) => {
   return false;
 });
 
-BOARD_EL.addEventListener('contextmenu', (e) => {
+EL.board.addEventListener('contextmenu', (e) => {
   if (!canRightClick && state.gameInProgress &&
       e.target.classList.contains('concealed')) {
     // Simulate right-click on mobile
@@ -270,7 +256,7 @@ BOARD_EL.addEventListener('contextmenu', (e) => {
   return false;
 });
 
-ROCK_RAIDERS.addEventListener('change', (e) => {
+EL.rockRaiders.addEventListener('change', (e) => {
   if (e.target.checked) {
     document.body.classList.add('rock-raiders');
     localStorage.setItem('rockRaidersGraphics', true);
@@ -281,13 +267,13 @@ ROCK_RAIDERS.addEventListener('change', (e) => {
 });
 
 if (localStorage.rockRaidersGraphics) {
-  ROCK_RAIDERS.checked = true;
+  EL.rockRaiders.checked = true;
 }
 
 function getTileDiv(i) {
   const x = i % state.width;
   const y = (i - x) / state.width;
-  return BOARD_EL.children[y].children[x];
+  return EL.board.children[y].children[x];
 }
 
 // Creates a div with the given class
@@ -304,7 +290,7 @@ function fireworks() {
   const after = createDiv('after');
   pyro.appendChild(before);
   pyro.appendChild(after);
-  BOARD_EL.appendChild(pyro);
+  EL.board.appendChild(pyro);
 }
 
 (() => {

@@ -20,3 +20,11 @@ export const shuffle = (arr) => {
 
 // Gets random int in [0, n]
 export const rand = (n) => Math.floor((n + 1) * Math.random());
+
+// Gets a map from id -> el for all elements with and ID.
+export const getIdEl = (root) => {
+  return [...root.querySelectorAll('[id]')].reduce((idEl, el) => {
+    idEl[el.id] = el;
+    return idEl;
+  }, {});
+};

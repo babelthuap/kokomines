@@ -93,9 +93,17 @@ button {
   color: red;
 }
 
+.boom::after {
+  content: 'BOOM';
+}
+
 .winner {
   border: 30px solid rgba(0, 255, 0, 0.3);
   color: green;
+}
+
+.winner::after {
+  content: 'WINNER';
 }
 
 #board {
