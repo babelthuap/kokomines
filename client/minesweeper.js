@@ -1,11 +1,9 @@
-'use strict';
-
-const {dist, shuffle, rand} = require('./util.js');
-const {time} = require('./logger.js');
+import {dist, rand, shuffle} from './util.js';
 
 // Public state
 let gameInProgress = false;
 let board = null;
+export const getPublicState = () => ({gameInProgress, board});
 
 // Private state
 let firstClick = null;
@@ -17,7 +15,7 @@ let adjacentMines = null;
 restart();
 
 // Restarts the game if it's not currently in progress
-function restart() {
+export function restart() {
   if (!gameInProgress && !restart.ing) {
     restart.ing = true;
     initGameState();
@@ -30,7 +28,7 @@ function restart() {
 }
 
 // Handles a click on the given tile
-function handleClick(i, rightClick) {
+export function handleClick(i, rightClick) {
   const [revealed] = board.tiles[i];
   if (!revealed) {
     if (rightClick) {
@@ -43,32 +41,30 @@ function handleClick(i, rightClick) {
 
 // Initializes the game state
 function initGameState(width = 30, height = 16, density = 0.2) {
-  time('initGameState', () => {
-    firstClick = true;
+  firstClick = true;
 
-    const numTiles = width * height;
-    const numMines = Math.round(numTiles * density);
+  const numTiles = width * height;
+  const numMines = Math.round(numTiles * density);
 
-    tilesLeftToReveal = numTiles - numMines;
-    board = {
-      width: width,
-      height: height,
-      mines: numMines,
-      flags: 0,
-      tiles: new Array(numTiles),
-    };
-    for (let i = 0; i < numTiles; i++) {
-      board.tiles[i] = [false, null];  // [revealed, label]
-    }
+  tilesLeftToReveal = numTiles - numMines;
+  board = {
+    width: width,
+    height: height,
+    mines: numMines,
+    flags: 0,
+    tiles: new Array(numTiles),
+  };
+  for (let i = 0; i < numTiles; i++) {
+    board.tiles[i] = [false, null];  // [revealed, label]
+  }
 
-    minePositions = new Array(numTiles).fill(false);
-    for (let i = 0; i < numMines; i++) {
-      minePositions[i] = true;
-    }
-    shuffle(minePositions);
+  minePositions = new Array(numTiles).fill(false);
+  for (let i = 0; i < numMines; i++) {
+    minePositions[i] = true;
+  }
+  shuffle(minePositions);
 
-    adjacentMines = new Array(numTiles).fill(0);
-  });
+  adjacentMines = new Array(numTiles).fill(0);
 }
 
 // Reveals a tile
@@ -234,7 +230,3 @@ function forEachNbrIndex(i, fn) {
     rightExists && fn(x + 1 + rowOffset);
   }
 }
-
-exports.getPublicState = () => ({gameInProgress, board});
-exports.restart = restart;
-exports.handleClick = handleClick;

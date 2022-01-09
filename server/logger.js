@@ -1,14 +1,12 @@
-'use strict';
-
 const DEBUG = process.argv.slice(2).some(arg => arg.includes('debug'));
 
-function log(...args) {
+export function log(...args) {
   if (DEBUG) {
     console.log(...args);
   }
 }
 
-function time(label, fn) {
+export function time(label, fn) {
   if (DEBUG) {
     const start = process.hrtime.bigint();
     fn();
@@ -18,6 +16,3 @@ function time(label, fn) {
     fn();
   }
 }
-
-exports.log = log;
-exports.time = time;

@@ -3,6 +3,7 @@
   "version": "1.1.0",
   "description": "LAN multiplayer minesweeper",
   "main": "server/app.js",
+  "type": "module",
   "scripts": {
     "test": "echo \"Error: no test specified\" && exit 1",
     "start": "node server/app.js"

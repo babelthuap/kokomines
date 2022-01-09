@@ -1,10 +1,8 @@
-'use strict';
-
-const {getPublicState, restart, handleClick} = require('./minesweeper.js');
-const {log, time} = require('./logger.js');
+import {getPublicState, restart, handleClick} from '../client/minesweeper.js';
+import {log, time} from './logger.js';
 
 // Handles communication with a socket
-function handleConnection(socket, io) {
+export function handleConnection(socket, io) {
   log(`user ${socket.id} connected`);
   socket.on('init', (username) => handleInit(username, socket, io))
       .on('click', (data) => handleClickEvent(data, socket, io))
@@ -69,5 +67,3 @@ function handleDisconnect(socket) {
   socket.broadcast.emit('usernames', usernames);
   socket.broadcast.emit('hover', hovering);
 }
-
-exports.handleConnection = handleConnection;
